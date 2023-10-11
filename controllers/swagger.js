@@ -104,7 +104,6 @@
 
 
 
-
 /**
  * @swagger
  * /car/info/{input}:
@@ -128,11 +127,11 @@
  *               properties:
  *                 carNumber:
  *                   type: string
- *                   description: Car number
+ *                   description: Car number (if found)
  *                   example: "AB123CD"
  *                 slotNumber:
  *                   type: integer
- *                   description: Slot number
+ *                   description: Slot number (if found)
  *                   example: 1
  *       404:
  *         description: Car or slot not found for the given input

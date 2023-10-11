@@ -10,6 +10,10 @@ const parkCarValidationRules = [
 
 
 const parkCar = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({"msg":"Car Number length at least 6 characters"});
+    }
     try {
         const { carNumber } = req.body; // Extract carNumber from the request body
 
