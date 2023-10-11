@@ -1,31 +1,20 @@
 const { Car } = require('../models/car.model');
+const { check, validationResult } = require('express-validator');
 
-// const parkCar = async (req, res) => {
-//     try {
-//         const { carNumber } = req.body;
-//         const existingCar = await Car.findOne({ carNumber });
-//         if (existingCar) {
-//             return res.status(400).json({ message: 'Car with the same number is already parked' });
-//         }
+const parkCarValidationRules = [
+    // Validate carNumber field with a minimum length of 6 characters
+    check('carNumber').isString().notEmpty().isLength({ min: 6 }),
+];
 
-//         const existingCarsCount = await Car.countDocuments();
-//         const maxParkingSlots = 100;
 
-//         if (existingCarsCount < maxParkingSlots) {
-//             const slotNumber = existingCarsCount + 1; // Assign a slot number
-//             const newCar = new Car({ carNumber, slotNumber });
-//             await newCar.save();
-//             res.status(201).json(newCar);
-//         } else {
-//             res.status(400).json({ message: 'Parking slot is not available' });
-//         }
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// };
 
 
 const parkCar = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).send({"msg":"Vehicle length at least 6 characters."});
+    }
+
     try {
         const { carNumber } = req.body;
         const existingCar = await Car.findOne({ carNumber });
@@ -94,7 +83,7 @@ const getCarSlotInformation = async (req, res) => {
 };
 
 module.exports = {
-    parkCar,
+    parkCar: [...parkCarValidationRules, parkCar],
     unparkCar,
     getCarSlotInformation
 };
