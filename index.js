@@ -37,6 +37,7 @@ const swaggerOptions = {
     apis: ['./controllers/*.js'], // Path to your API route files
   };
   
+  
   const specs = swaggerJsdoc(swaggerOptions);
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
