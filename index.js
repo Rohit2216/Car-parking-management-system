@@ -29,7 +29,7 @@ const swaggerOptions = {
       },
       servers: [
         {
-          url: `https://carparking-1lq7.onrender.com/`, // Replace with your server URL
+          url: `http://localhost:${process.env.port}/`, // Replace with your server URL
           description: 'Development server',
         },
       ],

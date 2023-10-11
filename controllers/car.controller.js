@@ -10,33 +10,32 @@ const parkCarValidationRules = [
 
 
 const parkCar = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).send({"msg":"Vehicle length at least 6 characters."});
-    }
-
     try {
-        const { carNumber } = req.body;
+        const { carNumber } = req.body; // Extract carNumber from the request body
+
+        // Check if the car with the given number is already parked
         const existingCar = await Car.findOne({ carNumber });
         if (existingCar) {
             return res.status(400).json({ message: 'Car with the same number is already parked' });
         }
 
-        const existingCarsCount = await Car.countDocuments();
-        const maxParkingSlots = 100;
+        // Get the maximum slot number and the total number of parking slots
+        const maxSlotNumber = await Car.findOne().sort({ slotNumber: -1 }).select('slotNumber');
+        const totalParkingSlots = 100; // Total number of parking slots
 
-        if (existingCarsCount < maxParkingSlots) {
-            const slotNumber = existingCarsCount + 1; // Assign a slot number
-            const newCar = new Car({ carNumber, slotNumber });
-            await newCar.save();
-            res.status(201).json({
-                // message: 'Car parked successfully',
-                // slotNumber: newCar.slotNumber,
-                parkingInfo: `You have parked your car in slot number ${newCar.slotNumber}.`
-            });
-        } else {
-            res.status(400).json({ message: 'Parking slot is not available' });
+        // Check if there are available parking slots
+        if (maxSlotNumber && maxSlotNumber.slotNumber >= totalParkingSlots) {
+            return res.status(400).json({ message: 'Parking slot is not available' });
         }
+
+        const newSlotNumber = maxSlotNumber ? maxSlotNumber.slotNumber + 1 : 1;
+
+        const newCar = new Car({ carNumber, slotNumber: newSlotNumber }); // Assign carNumber to the new car
+        await newCar.save();
+
+        res.status(201).json({
+            parkingInfo: `You have parked your car with number ${carNumber} in slot number ${newCar.slotNumber}.`,
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -45,16 +44,20 @@ const parkCar = async (req, res) => {
 
 
 
-
 const unparkCar = async (req, res) => {
     try {
-        const { slotNumber } = req.params; // Assuming slotNumber is passed as a URL parameter
+        const { slotNumber } = req.params;
         const unparkedCar = await Car.findOneAndDelete({ slotNumber: parseInt(slotNumber) });
 
         if (unparkedCar) {
-            // Decrement slot numbers of remaining parked cars with slot numbers greater than the unparked car
-            await Car.updateMany({ slotNumber: { $gt: parseInt(slotNumber) } }, { $inc: { slotNumber: -1 } });
-            res.status(200).json({ message: `Car with slot number ${slotNumber} has been unparked` });
+            // Get the maximum slot number after unparking
+            const maxSlotNumber = await Car.findOne().sort({ slotNumber: -1 }).select('slotNumber');
+
+            res.status(200).json({
+                message: `Car with slot number ${slotNumber} has been unparked`,
+                // vacantSlotNumber: slotNumber, // Return the vacant slot number
+                // maxSlotNumber: maxSlotNumber ? maxSlotNumber.slotNumber : 0 // Return the new maximum slot number
+            });
         } else {
             res.status(404).json({ message: 'Car not found at the specified slot number' });
         }
@@ -62,6 +65,9 @@ const unparkCar = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+
 
 const getCarSlotInformation = async (req, res) => {
     try {
