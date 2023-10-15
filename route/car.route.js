@@ -8,6 +8,7 @@ carRouter.post('/park', parkCar);
 // Route to unpark a car by slot number (assuming it's a DELETE request with slotNumber as a URL parameter)
 carRouter.delete('/unpark/:slotNumber', unparkCar);
 
+// Route to get the car details with slotnumbers or car numbers
 carRouter.get('/info/:input', getCarSlotInformation);
 
 
